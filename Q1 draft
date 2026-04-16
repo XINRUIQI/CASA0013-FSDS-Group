@@ -1,347 +1,0 @@
-#Q1 data source,literature,method,code
-行6-45    政策
-行47-107  商业
-行110-170 空间
-
-#Part1:    政策90天 
-反对党提议：“professional landlords 必须登记并多缴 Council Tax”，他们指控 Airbnb “out of control”，市长想知道是否真的“失控”，以及 “90 天规定是否被大规模违反”。 
-所以政策部分的核心问题是： 是否有大量房源违反伦敦的‘90 天规则’，以及该规则是否失效？ 
-这是政策维度最重要、最被媒体引用的指标。 （需要引用文献）
-
-90 天规则的本质：
-让房东偶尔短租可以、防止商业化（professional landlords）占用住房、防止大量房产从长期租赁市场被抽走
-如果大量房源超过 90 天出租 → 规则没有被遵守 → 政策失效 → Airbnb out of control 违反 90 天规则 = Airbnb 规模超过政府能管理的范围
-要算occupied_nights > 90
-（需要引用文献）
- 
-数据处理：
-1.全市违规占比：（判断是否失控）    
-有多少 Airbnb 房源违反 90 天？占比多少？ 结果高说明政策执行完全失效     
-用 results["city_stats"] 里的：share_violations、share_commercial、overlap_rate（说明“违反 90 天 ≈ 商业化 STR”）
-2.空间分布：（判断执法重点区域）     
-90 天规则在哪些地方失效得最严重？    
-违规行为的空间热点 → 监管失败的证据    
-这是政策参考价值很强的分析，因为市长部门的执法资源有限，需要知道重点区域    
-results["neighbourhood_stats"]，按 share_violations 排序 + 图 2 
-3.政策意义：（解释为什么违规多→商业化→平台非共享经济化）    
-首先：违反 90 天 = 商业化短租（不是共享经济） 需要文献支撑
-政策是否有效？政策失效是否导致 short-term letting 商业化扩张？  
-政策执行失败 → 导致大量房源全年出租 →导致商业化出现   
- 商业化 STR指标annual availability > 60 nights = commercial STR（文献常用）    
-可以结合 merge reviews → 估算 review_rate  → 估算 occupancy    
-可能结果：商业化指标与违规率高度一致、商业化 STR 集中在市中心、许多“职业化房东”持续满租    
-用city level：share_commercial, overlap_rate；area level：share_commercial vs share_violations（可以说高度一致）
-
-可视化结果：
-图1：表 年度出租夜数分布——业余出租&商业化整年出租对比
-图2：map 违规率前 20 的 borough————明确指出政策失效最严重的地方  
-图3：散点图 出租夜数vs评论数--商业化证据
-
-文献参考：
-* Shabrina et al. (2022/2021) 直接用 InsideAirbnb London 数据界定“misuse/违规”，把entire-home + 不符合当地规定作为违规代理，并讨论 90 天规则难以执行。SAGE Journals+2UCL Discovery+2
-* Rozena & Quinton (2023) 伦敦 Airbnbification 经验研究中明确提到超过 90 晚的多房源整套房属于违法、威胁住宅住房。Taylor & Francis Online
-* UK Parliament Commons Library Briefing (2024) 总结英格兰/伦敦 STR 监管，指出 90 天限制与实际市场规模冲突，并用 InsideAirbnb 做违规讨论。Research Briefings
-
-代码示例：见pdf
-
-#Part2:    商业
-市长和反对党的争议核心不只在于违规，而在于：Airbnb 是否已经从“共享经济”演变为“职业化、商业化运营”。
-所以商业部分要回答的问题是：Airbnb 是否正在从“偶尔出租 spare room 的共享经济” → “投资驱动、职业房东主导的商业化短租市场”？ Airbnb 的市场结构是否已经商业化 + 专业化？
-STR 是否从住房市场抽走了供应，从而推高租金？STR 是否变成吸引投资的高收益资产，导致 housing pressure？
- 如果大量 listing 是 professional landlords 运营 → Airbnb 已经不是共享经济如果整套出租比例极高 → Airbnb 占用了真正的住房
-如果活动度（availability / occupancy）高 → 这些 listing 实际像酒店
-如果收益远大于长期租金 → 房东有动力把房源从 LTR 转到 STR（推高租金）
-如果这些商业化行为高度集中 → 会制造 housing pressure & gentrification
-商业化是判断 Airbnb 是否“结构性失控” 的核心维度。
-1. Airbnb 是否偏离共享经济？（Entire-home share）
-2. Airbnb 是否被专业房东主导？（Multi-listing hosts）
-3. Airbnb 是否呈现酒店化运营？（High availability / occupancy）
-4. 商业化是否对长期租赁市场造成压力？（Rent inflation）
-5. 是否出现投资性 STR 行为？（Investment-driven STR）
-6. STR 密度是否在城市中特定区域集中？（STR density）
-
- 数据：
-直接可测的数据指标（Entire-home / Multi-host / Availability / Revenue）
-外部数据（Rent / Housing Stock / House Price）
-文献框架（rent inflation, investment, substitution incentives）
-
-1.整套房比例（Entire-home share）= 商业化信号
-依据文献（Ke 2017；InsideAirbnb method；Shabrina et al. 2021） entire-home 比例特别高（常见 >60%）→ 强商业化信号
-2.Multi-listing hosts（专业房东 / Professional landlords） Market structure evidence（市场结构证据） “市场结构很不平均”，X% 的 hosts 只拥有 1 套，Y% 的 hosts 拥有 ≥2 套，但这 Y% 的 hosts 控制了 Z% 的 listings
-依据文献（Xie 2021；Kirchner & Pohl 2024；Adamiak 2022），拥有多套房源的房东（multi-listing hosts）是 STR 商业化的最核心指标。 （不定义专业房东，不计算 如果大量 listing 被少数 host 控制 → 市场结构“专业化”，即：市场从“共享”变成了“酒店企业”。
-3.高可用度 / 高出租天数（全年运营 = 商业化）
-依据 InsideAirbnb、Gil 2023、Shabrina 2022：
-entire-home + 高 availability（>60 nights）或高 occupancy（>180 nights）＝ 类酒店运营。
-高可用度意味着：房东并非偶尔出租；不是“共享房屋”，而是“长期经营的短租资产” available_nights = 250（全年在 Airbnb 上开放），occupied_nights = 80（没有超过 90 天 → 不算违规），这种 listing “合法但高度商业化”，属于专业化 STR、资产化运营。Airbnb 是否像酒店一样全年运营，即使一个 listing 没违规，也可以高度商业化。高可用度衡量的是“商业化意图”，而不是“是否违法”。
-4.Commercialisation Matrix 
-5.STR Revenue Estimate（收益比较）
-6.STR Density（需要 housing stock 数据）
-（空间部分）
-borough-level commercial STR share
-borough-level multi-host share
-STR density（如果 housing stock 数据有）
-map：commercial STR hotspots
-
-可视化：
-1：条形图 Host distribution（专业 vs 业余房东）
-host 拥有的 listings 数量；each bucket 的 hosts 数量
-揭示：市场不平等（专业化）
-2：直方图 Annual availability distribution
-大量 listing 年开放 >60；部分 listing 年出租 >180
-揭示：酒店化运营
-3：MAP Commercial STR by borough
-commercial_STR share； multi-host share
-揭示：空间集中
-4：散点图 STR revenue vs borough rent（如果有 LTR 数据）
-x: borough median rent； y: median monthly STR equivalent
-揭示：收益差驱动替代效应（substitution incentive）
-
-解释但没代码部分：
-0.Bivens (2019) – Economic Costs and Benefits of Airbnb
-1.租金：Rent inflation（租金上涨机制）
-（文献支持 → 用于解释 为什么商业化是个问题）
-STR 把住房 stock 从 LTR 抽走；减少可负担住房；推高租金 / 房价；造成 displacement, gentrification
-2.商业化 → 住房压力 → Out of Control 的社会后果
-Investment-driven STR（投资型短租 / 资产化）
-（解释 → 为什么多房源房东出现 & 为什么 STR 会持续增长）
-3.很多 STR listing 不是“偶尔出租”，而是以投资为目的购入的资产；多房源房东的存在 + entire-home 强占比 = 资产化运营模式
-
-
-Part3: 空间
-失控是否呈现片区化？是否在某些区比其他区严重得多？ 哪几个 Borough / Neighbourhood 的失控最严重？是否集中在住宅区 / 市中心？ 是否有聚集效应（cluster/hotspot）？是否与住房压力（housing pressure）重合？ 
-找到空间热点（hotspots）→ 定位“监管失败区” → 为市长提供执法重点
-
-数据：
-1.短租密度（STR density）  Airbnb 是否高度集中在某些区？某些 Borough 的 STR 密度远超过其他区吗？
-高密度 = 对住房市场压力最大
-文献指出高密度是 监管失败 的代表性信号
-Shabrina et al. (2022/2021)： London STR 密度 & 违反政策区域 → 住房压力区
-Gyódi (2024)： Airbnb 在欧洲城市呈现明显的“市中心密度峰值”
-数据处理：每个 borough 的 STR 数
-数据处理：每个 borough 的住房存量 （housing stock） （根据商业部分找好的外部数据）
-结果分析：高 STR density ≠ 共享经济；高密度意味着旅游化 & 城市功能改变；高密度区 = 市长的执法优先区
-2.Hotspots / Spatial clustering（热点/聚集） 
-STR 活动是否在市中心/热门区域形成显著聚集？  是否出现局部指数式增长（Wachsmuth & Weisler 模型）？  聚集说明 Airbnb 不是随机分布，而是“结构性扩张” 	
-Gyódi (2024)：Airbnb clustering → 旅游活动驱动
-Wachsmuth & Weisler (2018)：STR 聚集 → housing displacement
-Wang & Hincks (2024)：伦敦 STR 收入呈空间溢出（spillover）
-数据处理：按 borough 排序（最密集的 Airbnb 区）
-数据处理：按 postcode / neighbourhood heatmap 
-数据处理：简单核密度图（FSDS允许）
-数据处理：Top-N concentration in X areas
-3.Residential conflict（居住区冲突）&Housing displacement（挤出效应）
-是否大量 entire-home / commercial STR 位于本应长期居住的区？  是否造成居民迁出与 LTR displacement？（文献支持） 这些热点是否与 housing pressure 区重合？
-老师给的文献：Travers, Sims & Bosetti (2016) – Housing & Inequality in London
-InsideAirbnb（London）：STR 侵入住宅区 → 像“informal hotels”
-Rozena & Quinton (2023)：居民感受到 Airbnb “改变社区性质”
-Gil (2023)：STR 抽走长期住房
-Koster et al. (2021)：STR 扩张减少 LTR supply
-EU Parliament report (2025)：STR 专业化 → 可负担住房下降
-Wachsmuth & Weisler (2018)：STR 导致居民迁出（displacement）
-数据处理：住宅区中的 entire-home 占比（如果 listings 有“neighbourhood_group”）
-数据处理：商业 STR（available >60）落在哪些 Borough 
-数据处理：热点是否在居住区（housing density 区）
-结果分析：住宅区里 Airbnb 高密度 = “hotelisation of residential buildings”
-结果分析：“Airbnbification” → community conflict（Rozena & Quinton）
- 借用商业的结果： commercial STR（available>60）
-entire-home
-multi-host（如果借用商业构造）
-borough-level rent
-
-可视化：
-1：Map STR 密度地图（STR per 1,000 dwellings）      
-核心地图：表明哪些区“最失控”。 
-2：map STR hotspots（heatmap 或聚集点）
-→ 说明空间不是随机的，而是系统性聚集。
-3：排序条形图 Borough STR concentration
-→ 明确“最严重前N区”。 
-4：Residential conflict map
-（commercial STR / entire-home 在住宅区的分布）
-→ 表达“Airbnb 抢住房”。
-
-文本分析： 
-1. STR space is uneven and highly concentrated
-→ Airbnb 不是随机分布，而是结构性倾斜
-2. Clustering is strongest in inner London
-→ 这些区是：旅游密集 + 住房压力大 + 监管难度高
-3. High-density & high-commercial STR overlap with residential zones
-→ 说明真正的问题不是“旅游”，而是“住宅区被转为短租资产”
-4. Literature-supported risk：Displacement & rent pressure These spatial patterns mirror international evidence that STR hotspots coincide with displacement and reduced LTR supply.
-
-代码示例：记得从第二步开始，见pdf
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-##以下是旧的未整理的内容，可以忽略。
-
-
-
-一、 政策：90天
-* Shabrina et al. (2022/2021) 直接用 InsideAirbnb London 数据界定“misuse/违规”，把entire-home + 不符合当地规定作为违规代理，并讨论 90 天规则难以执行。SAGE Journals+2UCL Discovery+2
-* Rozena & Quinton (2023) 伦敦 Airbnbification 经验研究中明确提到超过 90 晚的多房源整套房属于违法、威胁住宅住房。Taylor & Francis Online
-* UK Parliament Commons Library Briefing (2024) 总结英格兰/伦敦 STR 监管，指出 90 天限制与实际市场规模冲突，并用 InsideAirbnb 做违规讨论。Research Briefings
-
-监管有效性：90-day rule（适合 InsideAirbnb 数据）
-有 calendar 表（availability / booked / date）
-可以估算 occupied nights
-可以结合 review_rate 去估算 occupancy
-市长最关心
-* calendar 数据有所有日期
-* 可以准确计算 “估计出租天数” 或 availability
-* 文献里常用：annual availability > 60 nights = commercial STR
-* merge calendar → groupby → count nights
-
-
-Python 能做到的分析
-groupby(listing) → count occupied nights
-merge reviews → 估算 review_rate
-
-画图展示违规房源地理分布（GIS）
-→ 完美符合“透明 reproducible workflow” 的要求。
-
-
-背景里说：
-
-反对党提议：“professional landlords 必须登记并多缴 Council Tax”
-
-他们指控 Airbnb “out of control”
-
-市长想知道是否真的“失控”，以及 “90 天规定是否被大规模违反”。
-
-所以政策部分的核心问题是：
-🎯 是否有大量房源违反伦敦的‘90 天规则’，以及该规则是否失效？
-
-这是政策维度最重要、最被媒体引用的指标。
-
-
-
-
-二、空间分布/聚集+规模 ：
-1. STR density（短租密度高）
-* Shabrina et al. (2022/2021) 在 Greater London 计算 STR 的规模与空间分布，讨论密度水平与住房压力/违规。SAGE Journals+1
-* Gyódi (2024) 比较伦敦等城市 Airbnb 空间特征并强调供给密度与旅游/市中心集中。Taylor & Francis Online
-
-2. STR hotspots / clustering（热点/聚集）
-* Gyódi (2024) 明确研究 Airbnb 的空间聚集与热点形成。Taylor & Francis Online
-* Wachsmuth & Weisler (2018) 提出 STR 系统性但空间不均匀的聚集（clusters），是政策风险来源。ResearchGate
-* Wang & Hincks (2024) 伦敦疫情期 STR 收入与房源在空间上的聚集/溢出（方法你们可借鉴做热点图）。White Rose Research Online
-
-3. STR vs residential conflict（与传统居住区冲突）
-* InsideAirbnb London 页面 直指：在住宅区的 STR（尤其 entire-home、商业化房源）会像酒店一样扰民、拿走住房、可能违法。insideairbnb.com
-* Rozena & Quinton (2023) 伦敦 Airbnbification 生活经验研究，讨论住宅楼/社区被转化为“非正式酒店”的冲突。Taylor & Francis Online+1
-
-4. Displacement of long-term rentals（挤出长期租赁 / LTR displacement）
-* Gil (2023) 直接把 STR 描述为把住房从长期居住市场抽离、转换为全年短租的策略。estudioscriticosurbanos.com
-* Koster et al. (2021) 用准实验方法证明 STR 扩张会影响住房市场与长期租赁供给。ScienceDirect
-* EU Parliament STR regulation report (Colomb, 2025) 概括欧洲证据：STR 专业化导致长期租赁库存减少、可负担住房压力上升。European Parliament  Residential displacement（居民迁出 / 社区人口替换）
-* 这个概念在实证上常与 #10 合并。
-* Wachsmuth & Weisler (2018) 认为 Airbnb 带来新的住房收入通道，促使租户被替换/迁出（displacement），并且空间上不均衡。ResearchGate
-* Gil (2023) 也从资产化视角强调 STR 导致租户权利弱化与迁出压力。estudioscriticosurbanos.com
-
-#listings.csv 有 lattitude / longitude
-可以用 geopandas / contextily 做地图
- Hotspots（cluster）
-可以用简单 KDE 或 hexbin
-或 borough-level top 5 concentration areas
-
-Conflict with residential areas
-用 density + entire-home share
-不需要额外数据，仅需解释
-
-
-Python 能做到的分析
-Kernel density map（seaborn 或 geopandas）
-Choropleth map（按 borough 聚合）
-计算 density = listings / housing units（housing units 可从 ONS）
-
-
-三、商业：租金；STR-LTR（爱彼迎赚钱和社会出租赚钱） 
-
-1. Entire-home high share（整套房占比高＝商业化 / 失控信号）    ？？？
-* Ke (2017) “Sharing Means Renting?” 经典定义：Airbnb 大量整套房意味着平台更像短租市场而不是共享经济。arXiv
-* InsideAirbnb 方法说明（London page & site-wide statement） 把entire-home + 高活动度视为“hotel-like / removing housing / potentially illegal”。insideairbnb.com+1
-* Shabrina et al. (2022/2021) 在伦敦案例中把entire-property listings作为“misuse/商业化”关键代理变量之一。UCL Discovery+1
-
-2. Multi-listing / professional hosts（多房源房东＝商业化标志）
-* Xie et al. (2021) “Do professional hosts matter?” 明确定义 multi-listing host（>1 listings），并证明其运营更专业、收益更高。ScienceDirect+2ScienceDirect+2
-* Kirchner & Pohl (2024) 把专业房东/多房源增长作为 Airbnb commercialisation 的核心信号。SpringerLink
-* Adamiak (2022) 在欧洲 STR 研究中界定“professional/commercial hosts”为拥有一个或多个只用于短租的房屋。Taylor & Francis Online
-
-3. High availability（高可用天数＝全年商业运营）-90
-* InsideAirbnb 研究框架：entire-home + rented all year round 被视为对住房的系统性干扰、偏离共享经济。insideairbnb.com
-* Gil (2023) 将 STR 描述为一种全年运营、绕开长期租赁法规的资产化策略（即高可用率商业化）。estudioscriticosurbanos.com
-* Shabrina et al. (2022/2021) 伦敦研究使用“活动度/可用度”作为商业化代理，与住房属性相关联。UCL Discovery+1
-
-4. Rent inflation（推高租金）
-* Koster et al. (2021) 证明 STR 对租金/房价有显著上行效应。ScienceDirect
-* Ledraa et al. (2024) 综述性证据：STR 扩张减少 LTR stock 并推升租金。MDPI
-* （你们也可以在伦敦部分引用 Shabrina 论文的讨论段。）UCL Discovery
-
-5. Shift from amateur → professional（市场结构“业余→专业”转变） ？？？
-* Kirchner & Pohl (2024) 直接把专业房东上升、业余房东下降作为“商业化转向”的时序证据。SpringerLink
-* Adamiak (2022) 指出欧洲 STR 市场中商业/专业房东占比上升，并给出定义框架。Taylor & Francis Online
-* Ke (2017) 早期也已把“commercial hosts owning multiple listings”作为结构性争议点。arXiv
-
-6. Investment-driven STR（投资驱动型短租：买房专做 Airbnb）
-* Gil (2023) 把 STR 明确放入住房资产化/投资链条，认为很多房源是为 STR 收益而配置。estudioscriticosurbanos.com
-* Bosma (2022) 从“资产与生计/专业化收益”角度强调多房源、整套房和经验累积提升收益，为投资动机提供机制证据。SAGE Journals
-* Wachsmuth & Weisler (2018) 的 rent-gap 框架也常被用来解释“投资型 STR”。ResearchGate
-
-7. Substitution incentive（STR 收益 >> LTR 收益 的替代效应）
-* Gil (2023) 明确指出 STR 让房东获得更高回报并绕开长租规则，是从 LTR 转 STR 的核心经济激励。estudioscriticosurbanos.com
-* Koster et al. (2021) 讨论监管与收益结构改变住房供给配置（LTR→STR）。ScienceDirect
-* EU Parliament STR regulation report (2025) 概述：收益差驱动专业化 STR 扩张、影响可负担住房。European Parliament
-
-商业化：entire-home + multi-host（最容易 operationalise）
-
-listings.csv 有：
-room_type（"Entire home/apt"）
-host_id（可统计 host 有几个房源）
-
-可以算：
-entire-home %
-multi-host %（host_id n>1）
-availability > 60 天
-
-Python 能做到的分析：
-listings.groupby('host_id').size()
-value_counts(room_type)
-calendar 数据计算 availability
-
-经济收益差距（Airbnb income vs long-term rent）
-calendar 有 nightly price
-GLA 有租金数据（可直接下载 CSV）
-可以计算：
-Airbnb_monthly_revenue / LTR_monthly_rent
-
-STR density
-spatial join listing → borough polygons
-calculate STR per 1,000 homes
